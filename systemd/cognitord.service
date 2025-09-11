@@ -1,18 +1,17 @@
 [Unit]
 Description=Cognitord - DSRs LLM Processing Daemon
 Documentation=https://github.com/awdemos/cognitord
-After=network.target network-online.target
-Requires=network-online.target
+Requires=cognitord.socket
 
 [Service]
 Type=simple
-User=dsrs
-Group=dsrs
-ExecStart=/usr/local/bin/cognitord --config /app/config.json
+User=cognitord
+Group=cognitord
+ExecStart=/usr/local/bin/cognitord --config /etc/cognitord/config.json
 Restart=on-failure
 RestartSec=5
 StandardInput=socket
-StandardOutput=journal
+StandardOutput=socket
 StandardError=journal
 SyslogIdentifier=cognitord
 
@@ -25,8 +24,9 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/dsrs
-ReadWritePaths=/var/log/dsrs
+ReadWritePaths=/var/lib/cognitord
+ReadWritePaths=/var/log/cognitord
+ReadWritePaths=/etc/cognitord
 RemoveIPC=true
 
 # Resource limits

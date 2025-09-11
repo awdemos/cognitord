@@ -4,13 +4,13 @@ A Rust-based systemd daemon that processes requests through the DSRs (Distribute
 
 ## Features
 
-- **Systemd Integration**: Runs as a background service
+- **Systemd Socket Activation**: Runs as local socket-based service
 - **DSRs Processing**: Integrates with the DSRs repository for semantic reasoning
 - **Anthropic LLM Integration**: Interfaces with configured Anthropic endpoints
-- **JSON Line Protocol**: Uses stdin/stdout for request/response handling
+- **Unix Socket Protocol**: Uses `/run/cognitord/socket` for local communication
 - **Docker Support**: Containerized deployment with multi-stage builds
-- **Configuration Management**: Reads from `~/.claude.settings.json`
-- **Multiple Modes**: Supports both daemon and interactive modes
+- **Configuration Management**: Reads from `/etc/cognitord/config.json`
+- **Socket-based Service**: Designed for local systemd service integration
 
 ## Quick Start
 
@@ -20,17 +20,32 @@ A Rust-based systemd daemon that processes requests through the DSRs (Distribute
 cargo build --release
 ```
 
-### Running
+### Installation
 
 ```bash
-# Daemon mode (default)
-cognitord --config ~/.claude.settings.json
+# Install systemd service and socket
+sudo cp systemd/cognitord.service /etc/systemd/system/
+sudo cp systemd/cognitord.socket /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now cognitord.socket
 
-# Interactive mode
-cognitord --config ~/.claude.settings.json --interactive
+# Check status
+sudo systemctl status cognitord.socket
+```
+
+### Usage
+
+The service runs automatically via socket activation. Send JSON requests to the socket:
+
+```bash
+# Send request via Unix socket
+echo '{"input": "Hello", "request_id": "test-001"}' | nc -U /run/cognitord/socket
+
+# Interactive mode for testing
+cognitord --config /etc/cognitord/config.json --interactive
 
 # Validate configuration
-cognitord --validate-config ~/.claude.settings.json
+cognitord --validate-config /etc/cognitord/config.json
 ```
 
 ### Docker

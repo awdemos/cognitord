@@ -1,0 +1,13 @@
+[Unit]
+Description=Cognitord - DSRs LLM Processing Daemon Socket
+Documentation=https://github.com/awdemos/cognitord
+
+[Socket]
+ListenStream=/run/cognitord/socket
+SocketMode=0660
+SocketUser=cognitord
+SocketGroup=cognitord
+Service=cognitord.service
+
+[Install]
+WantedBy=sockets.target

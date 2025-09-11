@@ -48,15 +48,16 @@ WORKDIR /app
 # Copy binary from builder
 COPY --from=builder /app/target/release/cognitord /usr/local/bin/
 
-# Copy systemd service file
+# Copy systemd service and socket files
 COPY systemd/cognitord.service /etc/systemd/system/
+COPY systemd/cognitord.socket /etc/systemd/system/
 
 # Copy example configuration
 COPY docker/example-config.json /app/config.json.example
 
 # Create necessary directories
-RUN mkdir -p /var/lib/cognitord /var/log/cognitord && \
-    chown cognitord:cognitord /var/lib/cognitord /var/log/cognitord
+RUN mkdir -p /var/lib/cognitord /var/log/cognitord /etc/cognitord /run/cognitord && \
+    chown cognitord:cognitord /var/lib/cognitord /var/log/cognitord /etc/cognitord /run/cognitord
 
 # Set permissions
 RUN chmod +x /usr/local/bin/cognitord

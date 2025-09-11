@@ -76,14 +76,14 @@ struct Config {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let matches = Command::new("dsrs-daemon")
+    let matches = Command::new("cognitord")
         .version("0.1.0")
-        .about("DSRs LLM Processing Daemon")
+        .about("Cognitord - DSRs LLM Processing Daemon")
         .arg(Arg::new("config")
             .long("config")
             .value_name("FILE")
             .help("Configuration file path")
-            .default_value("/app/config.json"))
+            .default_value("/etc/cognitord/config.json"))
         .arg(Arg::new("log-level")
             .long("log-level")
             .value_name("LEVEL")
@@ -159,7 +159,7 @@ fn init_logging(logging: &LoggingConfig) {
 }
 
 fn run_daemon(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Starting DSRs daemon in background mode...");
+    println!("Starting Cognitord daemon in background mode...");
     
     // Simple stdin/stdout processing loop
     let stdin = io::stdin();
@@ -195,7 +195,7 @@ fn run_daemon(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn run_interactive(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
-    println!("DSRs Daemon Interactive Mode");
+    println!("Cognitord Interactive Mode");
     println!("Enter JSON requests (Ctrl+D to exit):");
     
     let stdin = io::stdin();
