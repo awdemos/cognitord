@@ -1,0 +1,45 @@
+[Unit]
+Description=DSRs LLM Processing Daemon
+Documentation=https://github.com/krypticmouse/DSRs
+After=network.target network-online.target
+Requires=network-online.target
+
+[Service]
+Type=simple
+User=dsrs
+Group=dsrs
+ExecStart=/usr/local/bin/dsrs-daemon --config /app/config.json
+Restart=on-failure
+RestartSec=5
+StandardInput=socket
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=dsrs-daemon
+
+# Environment variables
+Environment=RUST_LOG=info
+Environment=RUST_BACKTRACE=1
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/dsrs
+ReadWritePaths=/var/log/dsrs
+RemoveIPC=true
+
+# Resource limits
+LimitNOFILE=65536
+MemoryMax=512M
+CPUQuota=80%
+
+# Timeout settings
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+# Working directory
+WorkingDirectory=/app
+
+[Install]
+WantedBy=multi-user.target

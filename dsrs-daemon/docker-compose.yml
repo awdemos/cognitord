@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  dsrs-daemon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dsrs-daemon
+    restart: unless-stopped
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - CONFIG_FILE=/app/config.json
+    volumes:
+      - ./config:/app/config:ro
+      - ./logs:/var/log/dsrs:rw
+    stdin_open: true
+    tty: true
+    networks:
+      - dsrs-network
+    profiles:
+      - daemon
+      - test
+
+  dsrs-interactive:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dsrs-interactive
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+      - CONFIG_FILE=/app/config.json
+    volumes:
+      - ./config:/app/config:ro
+      - ./logs:/var/log/dsrs:rw
+    stdin_open: true
+    tty: true
+    command: ["interactive"]
+    networks:
+      - dsrs-network
+    profiles:
+      - interactive
+
+  dsrs-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dsrs-test
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+      - CONFIG_FILE=/app/config.json
+    volumes:
+      - ./config:/app/config:ro
+      - ./logs:/var/log/dsrs:rw
+    command: ["test"]
+    networks:
+      - dsrs-network
+    profiles:
+      - test
+
+  dsrs-validate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dsrs-validate
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - CONFIG_FILE=/app/config.json
+    volumes:
+      - ./config:/app/config:ro
+    command: ["validate"]
+    networks:
+      - dsrs-network
+    profiles:
+      - validate
+
+networks:
+  dsrs-network:
+    driver: bridge
+
+volumes:
+  dsrs-config:
+    driver: local
+  dsrs-logs:
+    driver: local
