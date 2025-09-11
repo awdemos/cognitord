@@ -1,0 +1,13 @@
+/Users/a/code/cognitord/target/debug/deps/libc-f8bcf82d009c1e60.d: /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/lib.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/macros.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/new/mod.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/primitives.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/mod.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/bsd/mod.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/bsd/apple/mod.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/bsd/apple/b64/mod.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/bsd/apple/b64/x86_64/mod.rs
+
+/Users/a/code/cognitord/target/debug/deps/liblibc-f8bcf82d009c1e60.rmeta: /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/lib.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/macros.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/new/mod.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/primitives.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/mod.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/bsd/mod.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/bsd/apple/mod.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/bsd/apple/b64/mod.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/bsd/apple/b64/x86_64/mod.rs
+
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/lib.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/macros.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/new/mod.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/primitives.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/mod.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/bsd/mod.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/bsd/apple/mod.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/bsd/apple/b64/mod.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.175/src/unix/bsd/apple/b64/x86_64/mod.rs:

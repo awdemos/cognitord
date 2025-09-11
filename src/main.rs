@@ -2,6 +2,7 @@ use clap::{Arg, Command};
 use std::io::{self, Read, Write};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use dsrs::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct ProcessRequest {
@@ -73,6 +74,15 @@ struct Config {
     anthropic: AnthropicConfig,
     daemon: DaemonConfig,
     logging: LoggingConfig,
+    dsrs: DsrsConfig,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct DsrsConfig {
+    enable_context: bool,
+    enable_system_prompt: bool,
+    max_context_length: usize,
+    retry_attempts: u32,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -235,24 +245,89 @@ fn process_input(input: &str, config: &Config) -> Result<ProcessResponse, Box<dy
     // Generate request ID if not provided
     let request_id = request.request_id.unwrap_or_else(|| Uuid::new_v4().to_string());
     
-    // Simulate processing (in real implementation, this would call DSRs and Anthropic API)
+    // Start processing timer
     let start_time = std::time::Instant::now();
     
-    // Mock response - in real implementation, this would call the actual LLM
-    let output = format!("Processed: {}", request.input);
-    let usage = UsageStats {
-        input_tokens: request.input.len() as u32,
-        output_tokens: output.len() as u32,
-        total_tokens: (request.input.len() + output.len()) as u32,
+    // Define DSRs signature for processing
+    #[Signature]
+    struct ProcessingSignature {
+        #[input]
+        pub input: String,
+        #[output]
+        pub response: String,
+    }
+    
+    // Create the signature instance
+    let signature = ProcessingSignature::new();
+    
+    // Set up the language model with configuration from our config
+    let lm = LanguageModel::builder()
+        .model(&config.anthropic.model)
+        .api_key(&config.anthropic.api_key)
+        .base_url(&config.anthropic.base_url)
+        .max_tokens(config.anthropic.max_tokens)
+        .temperature(config.anthropic.temperature)
+        .build()?;
+    
+    // Create the predictor
+    let predictor = Predict::new(signature)
+        .with_language_model(lm);
+    
+    // Apply context if provided and enabled
+    let predictor = if config.dsrs.enable_context && request.context.is_some() {
+        if let Some(context) = &request.context {
+            let truncated_context = if context.len() > config.dsrs.max_context_length {
+                &context[..config.dsrs.max_context_length]
+            } else {
+                context
+            };
+            predictor.with_context(truncated_context.clone())
+        } else {
+            predictor
+        }
+    } else {
+        predictor
     };
     
+    // Apply system prompt if provided and enabled
+    let predictor = if config.dsrs.enable_system_prompt && request.system_prompt.is_some() {
+        if let Some(system_prompt) = &request.system_prompt {
+            predictor.with_system_prompt(system_prompt.clone())
+        } else {
+            predictor
+        }
+    } else {
+        predictor
+    };
+    
+    // Execute the DSRs pipeline
+    let prediction = predictor.forward(&ProcessingSignature {
+        input: request.input.clone(),
+        response: String::new(), // Will be filled by the model
+    })?;
+    
+    let output = prediction.response;
     let duration_ms = start_time.elapsed().as_millis() as u64;
+    
+    // Calculate usage statistics (estimated based on token count)
+    let input_tokens = estimate_token_count(&request.input);
+    let output_tokens = estimate_token_count(&output);
     
     Ok(ProcessResponse {
         output,
-        usage,
+        usage: UsageStats {
+            input_tokens,
+            output_tokens,
+            total_tokens: input_tokens + output_tokens,
+        },
         request_id,
         timestamp: chrono::Utc::now().to_rfc3339(),
         duration_ms,
     })
+}
+
+// Helper function to estimate token count (rough approximation)
+fn estimate_token_count(text: &str) -> u32 {
+    // Simple heuristic: ~4 characters per token on average
+    (text.len() as f64 / 4.0).ceil() as u32
 }

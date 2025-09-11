@@ -1,0 +1,1 @@
+cargo:rustc-env=MIME_TYPES_GENERATED_PATH=/Users/a/code/cognitord/target/debug/build/mime_guess-22f4ed7c31143a08/out/mime_types_generated.rs

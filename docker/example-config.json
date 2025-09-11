@@ -19,5 +19,11 @@
     "level": "info",
     "format": "json",
     "file": null
+  },
+  "dsrs": {
+    "enable_context": true,
+    "enable_system_prompt": true,
+    "max_context_length": 4000,
+    "retry_attempts": 3
   }
 }

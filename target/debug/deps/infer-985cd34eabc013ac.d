@@ -1,0 +1,14 @@
+/Users/a/code/cognitord/target/debug/deps/infer-985cd34eabc013ac.d: /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/lib.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/map.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/mod.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/app.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/archive.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/audio.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/doc.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/font.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/image.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/video.rs
+
+/Users/a/code/cognitord/target/debug/deps/libinfer-985cd34eabc013ac.rmeta: /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/lib.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/map.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/mod.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/app.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/archive.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/audio.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/doc.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/font.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/image.rs /Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/video.rs
+
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/lib.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/map.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/mod.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/app.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/archive.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/audio.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/doc.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/font.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/image.rs:
+/Users/a/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/infer-0.2.3/src/matchers/video.rs:
