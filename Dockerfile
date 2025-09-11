@@ -1,4 +1,4 @@
-# Multi-stage build for DSRs systemd daemon
+# Multi-stage build for Cognitord daemon
 # Stage 1: Build
 FROM rust:1.80-slim AS builder
 
@@ -40,39 +40,39 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
-RUN useradd -r -s /bin/false -d /app dsrs
+RUN useradd -r -s /bin/false -d /app cognitord
 
 # Set working directory
 WORKDIR /app
 
 # Copy binary from builder
-COPY --from=builder /app/target/release/dsrs-daemon /usr/local/bin/
+COPY --from=builder /app/target/release/cognitord /usr/local/bin/
 
 # Copy systemd service file
-COPY systemd/dsrs-daemon.service /etc/systemd/system/
+COPY systemd/cognitord.service /etc/systemd/system/
 
 # Copy example configuration
 COPY docker/example-config.json /app/config.json.example
 
 # Create necessary directories
-RUN mkdir -p /var/lib/dsrs /var/log/dsrs && \
-    chown dsrs:dsrs /var/lib/dsrs /var/log/dsrs
+RUN mkdir -p /var/lib/cognitord /var/log/cognitord && \
+    chown cognitord:cognitord /var/lib/cognitord /var/log/cognitord
 
 # Set permissions
-RUN chmod +x /usr/local/bin/dsrs-daemon
+RUN chmod +x /usr/local/bin/cognitord
 
 # Create entrypoint script
 COPY docker/entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Switch to non-root user
-USER dsrs
+USER cognitord
 
 # No ports exposed (stdin/stdout only)
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD pgrep dsrs-daemon || exit 1
+    CMD pgrep cognitord || exit 1
 
 # Set entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

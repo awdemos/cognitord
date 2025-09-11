@@ -1,11 +1,11 @@
 [package]
-name = "dsrs-daemon"
+name = "cognitord"
 version = "0.1.0"
 edition = "2021"
-description = "DSRs LLM Processing Daemon"
-authors = ["DSRs Team"]
+description = "Cognitord - DSRs LLM Processing Daemon"
+authors = ["Cognitord Team"]
 license = "MIT"
-repository = "https://github.com/krypticmouse/DSRs"
+repository = "https://github.com/awdemos/cognitord"
 rust-version = "1.80"
 
 [dependencies]
@@ -19,15 +19,3 @@ thiserror = "1.0"
 clap = { version = "4.0", features = ["derive"] }
 anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
-
-[dev-dependencies]
-mockall = "0.11"
-tokio-test = "0.4"
-
-[features]
-default = []
-test-utils = []
-
-[[bin]]
-name = "dsrs-daemon"
-path = "src/main.rs"

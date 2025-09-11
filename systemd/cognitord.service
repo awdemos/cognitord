@@ -1,6 +1,6 @@
 [Unit]
-Description=DSRs LLM Processing Daemon
-Documentation=https://github.com/krypticmouse/DSRs
+Description=Cognitord - DSRs LLM Processing Daemon
+Documentation=https://github.com/awdemos/cognitord
 After=network.target network-online.target
 Requires=network-online.target
 
@@ -8,13 +8,13 @@ Requires=network-online.target
 Type=simple
 User=dsrs
 Group=dsrs
-ExecStart=/usr/local/bin/dsrs-daemon --config /app/config.json
+ExecStart=/usr/local/bin/cognitord --config /app/config.json
 Restart=on-failure
 RestartSec=5
 StandardInput=socket
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=dsrs-daemon
+SyslogIdentifier=cognitord
 
 # Environment variables
 Environment=RUST_LOG=info
