@@ -1,13 +1,16 @@
 #!/bin/bash
 set -e
 
-# DSRs Daemon Docker Entrypoint
+# Cognitord Docker Entrypoint
 
 # Function to handle signals
 cleanup() {
     echo "Received shutdown signal, stopping daemon..."
     if [ -n "$DAEMON_PID" ]; then
         kill $DAEMON_PID 2>/dev/null || true
+    fi
+    if [ -n "$SOCKET_PATH" ] && [ -S "$SOCKET_PATH" ]; then
+        rm -f "$SOCKET_PATH"
     fi
     exit 0
 }
@@ -19,6 +22,7 @@ trap cleanup SIGTERM SIGINT
 CONFIG_FILE=${CONFIG_FILE:-/app/config.json}
 LOG_LEVEL=${LOG_LEVEL:-info}
 API_KEY=${ANTHROPIC_API_KEY:-}
+SOCKET_PATH=${SOCKET_PATH:-/tmp/cognitord.sock}
 
 # Validate required environment variables
 if [ -z "$API_KEY" ]; then
@@ -41,7 +45,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
 fi
 
 # Validate configuration file
-if ! /usr/local/bin/dsrs-daemon --validate-config "$CONFIG_FILE"; then
+if ! /usr/local/bin/cognitord --validate-config "$CONFIG_FILE"; then
     echo "Error: Invalid configuration file"
     exit 1
 fi
@@ -49,31 +53,64 @@ fi
 # Handle different run modes
 case "$1" in
     "daemon")
-        echo "Starting DSRs daemon in background mode..."
-        exec /usr/local/bin/dsrs-daemon --config "$CONFIG_FILE" --log-level "$LOG_LEVEL"
+        echo "Starting Cognitord daemon in background mode..."
+        echo "Socket path: $SOCKET_PATH"
+        
+        # Clean up existing socket if it exists
+        if [ -S "$SOCKET_PATH" ]; then
+            rm -f "$SOCKET_PATH"
+        fi
+        
+        # Create Unix socket and listen for connections
+        exec /usr/local/bin/cognitord --config "$CONFIG_FILE" --log-level "$LOG_LEVEL"
         ;;
     
     "interactive")
-        echo "Starting DSRs daemon in interactive mode..."
+        echo "Starting Cognitord daemon in interactive mode..."
         echo "Send JSON requests via stdin, responses will appear on stdout"
         echo "Press Ctrl+C to exit"
-        exec /usr/local/bin/dsrs-daemon --config "$CONFIG_FILE" --log-level "$LOG_LEVEL" --interactive
+        exec /usr/local/bin/cognitord --config "$CONFIG_FILE" --log-level "$LOG_LEVEL" --interactive
         ;;
     
     "test")
-        echo "Running DSRs daemon test mode..."
+        echo "Running Cognitord daemon test mode..."
         echo '{"input": "Hello, Docker!", "request_id": "docker-test-001"}' | \
-        /usr/local/bin/dsrs-daemon --config "$CONFIG_FILE" --log-level "$LOG_LEVEL"
+        /usr/local/bin/cognitord --config "$CONFIG_FILE" --log-level "$LOG_LEVEL"
         ;;
     
     "validate")
         echo "Validating configuration..."
-        exec /usr/local/bin/dsrs-daemon --validate-config "$CONFIG_FILE"
+        exec /usr/local/bin/cognitord --validate-config "$CONFIG_FILE"
+        ;;
+    
+    "socket")
+        echo "Starting Cognitord as socket server..."
+        echo "Socket path: $SOCKET_PATH"
+        
+        # Clean up existing socket if it exists
+        if [ -S "$SOCKET_PATH" ]; then
+            rm -f "$SOCKET_PATH"
+        fi
+        
+        # Create socket directory if needed
+        SOCKET_DIR=$(dirname "$SOCKET_PATH")
+        mkdir -p "$SOCKET_DIR"
+        
+        # Start daemon
+        exec /usr/local/bin/cognitord --config "$CONFIG_FILE" --log-level "$LOG_LEVEL"
         ;;
     
     *)
-        # Default to daemon mode
-        echo "Starting DSRs daemon in default mode..."
-        exec /usr/local/bin/dsrs-daemon --config "$CONFIG_FILE" --log-level "$LOG_LEVEL"
+        # Default to socket mode for Docker
+        echo "Starting Cognitord in default socket mode..."
+        echo "Socket path: $SOCKET_PATH"
+        
+        # Clean up existing socket if it exists
+        if [ -S "$SOCKET_PATH" ]; then
+            rm -f "$SOCKET_PATH"
+        fi
+        
+        # Start daemon
+        exec /usr/local/bin/cognitord --config "$CONFIG_FILE" --log-level "$LOG_LEVEL"
         ;;
 esac

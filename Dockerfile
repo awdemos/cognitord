@@ -35,8 +35,8 @@ FROM debian:12-slim AS runtime
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
-    systemd \
     ca-certificates \
+    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
@@ -48,16 +48,12 @@ WORKDIR /app
 # Copy binary from builder
 COPY --from=builder /app/target/release/cognitord /usr/local/bin/
 
-# Copy systemd service and socket files
-COPY systemd/cognitord.service /etc/systemd/system/
-COPY systemd/cognitord.socket /etc/systemd/system/
-
 # Copy example configuration
 COPY docker/example-config.json /app/config.json.example
 
 # Create necessary directories
-RUN mkdir -p /var/lib/cognitord /var/log/cognitord /etc/cognitord /run/cognitord && \
-    chown cognitord:cognitord /var/lib/cognitord /var/log/cognitord /etc/cognitord /run/cognitord
+RUN mkdir -p /tmp /var/lib/cognitord /var/log/cognitord && \
+    chown cognitord:cognitord /var/lib/cognitord /var/log/cognitord
 
 # Set permissions
 RUN chmod +x /usr/local/bin/cognitord
@@ -71,9 +67,9 @@ USER cognitord
 
 # No ports exposed (stdin/stdout only)
 
-# Health check
+# Health check - test if the process is running
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD pgrep cognitord || exit 1
+    CMD pgrep -f "cognitord" || exit 1
 
 # Set entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

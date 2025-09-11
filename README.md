@@ -50,23 +50,38 @@ cognitord --validate-config /etc/cognitord/config.json
 
 ### Docker
 
+The Docker container runs Cognitord in stdin/stdout mode for socket communication:
+
 ```bash
 # Build image
 docker build -t cognitord .
 
-# Run in daemon mode
-docker run -d --name cognitord cognitord
+# Run as socket server (default mode)
+docker run -d --name cognitord \
+  -e ANTHROPIC_API_KEY=your-api-key \
+  -v /tmp/cognitord.sock:/tmp/cognitord.sock \
+  cognitord
 
-# Interactive mode
-docker run -it cognitord interactive
+# Interactive mode for testing
+docker run -it --rm \
+  -e ANTHROPIC_API_KEY=your-api-key \
+  cognitord interactive
 
 # Test mode
-docker run cognitord test
+docker run --rm \
+  -e ANTHROPIC_API_KEY=your-api-key \
+  cognitord test
+
+# Test socket communication
+echo '{"input": "Hello from Docker!", "request_id": "docker-test-001"}' | \
+  nc -U /tmp/cognitord.sock
 ```
+
+**Note:** For production deployment with proper systemd socket activation, install the service files directly on the host system rather than using Docker containers.
 
 ## Configuration
 
-The daemon reads configuration from `~/.claude.settings.json` which should contain:
+The daemon reads configuration from `/etc/cognitord/config.json` (systemd service) or `~/.claude.settings.json` (CLI usage). The configuration file should contain:
 
 ```json
 {
