@@ -59,7 +59,7 @@ docker build -t cognitord .
 # Run as socket server (default mode)
 docker run -d --name cognitord \
   -e ANTHROPIC_API_KEY=your-api-key \
-  -v /tmp/cognitord.sock:/tmp/cognitord.sock \
+  -v /run/cognitord:/run/cognitord \
   cognitord
 
 # Interactive mode for testing
@@ -74,7 +74,7 @@ docker run --rm \
 
 # Test socket communication
 echo '{"input": "Hello from Docker!", "request_id": "docker-test-001"}' | \
-  nc -U /tmp/cognitord.sock
+  nc -U /run/cognitord/socket
 ```
 
 **Note:** For production deployment with proper systemd socket activation, install the service files directly on the host system rather than using Docker containers.

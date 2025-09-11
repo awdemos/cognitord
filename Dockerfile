@@ -52,8 +52,8 @@ COPY --from=builder /app/target/release/cognitord /usr/local/bin/
 COPY docker/example-config.json /app/config.json.example
 
 # Create necessary directories
-RUN mkdir -p /tmp /var/lib/cognitord /var/log/cognitord && \
-    chown cognitord:cognitord /var/lib/cognitord /var/log/cognitord
+RUN mkdir -p /run/cognitord /var/lib/cognitord /var/log/cognitord /etc/cognitord && \
+    chown cognitord:cognitord /run/cognitord /var/lib/cognitord /var/log/cognitord /etc/cognitord
 
 # Set permissions
 RUN chmod +x /usr/local/bin/cognitord

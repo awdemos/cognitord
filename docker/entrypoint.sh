@@ -22,7 +22,7 @@ trap cleanup SIGTERM SIGINT
 CONFIG_FILE=${CONFIG_FILE:-/app/config.json}
 LOG_LEVEL=${LOG_LEVEL:-info}
 API_KEY=${ANTHROPIC_API_KEY:-}
-SOCKET_PATH=${SOCKET_PATH:-/tmp/cognitord.sock}
+SOCKET_PATH=${SOCKET_PATH:-/run/cognitord/socket}
 
 # Validate required environment variables
 if [ -z "$API_KEY" ]; then
