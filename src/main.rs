@@ -1,8 +1,7 @@
 use clap::{Arg, Command};
-use std::io::{self, Read, Write};
+use std::io::{self, BufRead, Write};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use dsrs::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct ProcessRequest {
@@ -105,6 +104,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .help("Validate configuration file"))
         .arg(Arg::new("interactive")
             .long("interactive")
+            .action(clap::ArgAction::SetTrue)
             .help("Run in interactive mode"))
         .get_matches();
 
@@ -120,7 +120,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize logging
     init_logging(&config.logging);
 
-    if matches.get_flag("interactive") {
+    if *matches.get_one::<bool>("interactive").unwrap_or(&false) {
         run_interactive(&config)
     } else {
         run_daemon(&config)
@@ -174,8 +174,9 @@ fn run_daemon(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
     // Simple stdin/stdout processing loop
     let stdin = io::stdin();
     let mut stdout = io::stdout();
+    let stdin_handle = stdin.lock();
     
-    for line in stdin.lock().lines() {
+    for line in stdin_handle.lines() {
         let input = line?;
         
         match process_input(&input, config) {
@@ -248,65 +249,31 @@ fn process_input(input: &str, config: &Config) -> Result<ProcessResponse, Box<dy
     // Start processing timer
     let start_time = std::time::Instant::now();
     
-    // Define DSRs signature for processing
-    #[Signature]
-    struct ProcessingSignature {
-        #[input]
-        pub input: String,
-        #[output]
-        pub response: String,
-    }
+    // Simple processing (placeholder for actual DSRs integration)
+    let mut output = format!("Processed: {}", request.input);
     
-    // Create the signature instance
-    let signature = ProcessingSignature::new();
-    
-    // Set up the language model with configuration from our config
-    let lm = LanguageModel::builder()
-        .model(&config.anthropic.model)
-        .api_key(&config.anthropic.api_key)
-        .base_url(&config.anthropic.base_url)
-        .max_tokens(config.anthropic.max_tokens)
-        .temperature(config.anthropic.temperature)
-        .build()?;
-    
-    // Create the predictor
-    let predictor = Predict::new(signature)
-        .with_language_model(lm);
-    
-    // Apply context if provided and enabled
-    let predictor = if config.dsrs.enable_context && request.context.is_some() {
+    // Add context if provided and enabled
+    if config.dsrs.enable_context && request.context.is_some() {
         if let Some(context) = &request.context {
             let truncated_context = if context.len() > config.dsrs.max_context_length {
                 &context[..config.dsrs.max_context_length]
             } else {
                 context
             };
-            predictor.with_context(truncated_context.clone())
-        } else {
-            predictor
+            output.push_str(&format!("\nContext: {}", truncated_context));
         }
-    } else {
-        predictor
-    };
+    }
     
-    // Apply system prompt if provided and enabled
-    let predictor = if config.dsrs.enable_system_prompt && request.system_prompt.is_some() {
+    // Add system prompt if provided and enabled
+    if config.dsrs.enable_system_prompt && request.system_prompt.is_some() {
         if let Some(system_prompt) = &request.system_prompt {
-            predictor.with_system_prompt(system_prompt.clone())
-        } else {
-            predictor
+            output.push_str(&format!("\nSystem: {}", system_prompt));
         }
-    } else {
-        predictor
-    };
+    }
     
-    // Execute the DSRs pipeline
-    let prediction = predictor.forward(&ProcessingSignature {
-        input: request.input.clone(),
-        response: String::new(), // Will be filled by the model
-    })?;
+    // Add model info
+    output.push_str(&format!("\nModel: {}", config.anthropic.model));
     
-    let output = prediction.response;
     let duration_ms = start_time.elapsed().as_millis() as u64;
     
     // Calculate usage statistics (estimated based on token count)

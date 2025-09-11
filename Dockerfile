@@ -1,6 +1,6 @@
 # Multi-stage build for Cognitord daemon
 # Stage 1: Build
-FROM rust:1.80-slim AS builder
+FROM rust:1.81-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
@@ -59,7 +59,7 @@ RUN mkdir -p /run/cognitord /var/lib/cognitord /var/log/cognitord /etc/cognitord
 RUN chmod +x /usr/local/bin/cognitord
 
 # Create entrypoint script
-COPY docker/entrypoint.sh /usr/local/bin/
+COPY docker/entrypoint-simple.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Switch to non-root user
