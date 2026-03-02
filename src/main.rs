@@ -3,41 +3,64 @@ use std::io::{self, BufRead, Write};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+/// Request payload for processing input through the daemon
 #[derive(Debug, Serialize, Deserialize)]
 struct ProcessRequest {
+    /// The input text to be processed
     input: String,
+    /// Optional context to include in processing
     context: Option<String>,
+    /// Optional system prompt to guide processing
     system_prompt: Option<String>,
+    /// Optional request ID for tracking (auto-generated if not provided)
     request_id: Option<String>,
 }
 
+/// Response payload returned after processing
 #[derive(Debug, Serialize, Deserialize)]
 struct ProcessResponse {
+    /// The processed output text
     output: String,
+    /// Token usage statistics for this request
     usage: UsageStats,
+    /// Unique identifier for this request
     request_id: String,
+    /// ISO 8601 timestamp when response was generated
     timestamp: String,
+    /// Processing duration in milliseconds
     duration_ms: u64,
 }
 
+/// Token usage statistics for a request
 #[derive(Debug, Serialize, Deserialize)]
 struct UsageStats {
+    /// Number of tokens in the input
     input_tokens: u32,
+    /// Number of tokens in the output
     output_tokens: u32,
+    /// Total tokens used (input + output)
     total_tokens: u32,
 }
 
+/// Error response returned when processing fails
 #[derive(Debug, Serialize, Deserialize)]
 struct ErrorResponse {
+    /// Detailed error information
     error: ErrorDetails,
+    /// Request ID if available
     request_id: Option<String>,
+    /// ISO 8601 timestamp when error occurred
     timestamp: String,
 }
 
+/// Detailed error information
 #[derive(Debug, Serialize, Deserialize)]
 struct ErrorDetails {
+    /// Error code for programmatic handling
     code: String,
+    /// Human-readable error message
     message: String,
+    /// Additional error context if available
     details: Option<serde_json::Value>,
 }
 
@@ -56,8 +79,11 @@ struct DaemonConfig {
     log_level: String,
     timeout_seconds: u64,
     max_input_size: usize,
+    /// Maximum retry attempts for failed API calls (TODO: implement retry logic)
     max_retries: u32,
+    /// Initial delay between retries in milliseconds (TODO: implement retry logic)
     retry_delay_ms: u64,
+    /// Exponential backoff multiplier for retries (TODO: implement retry logic)
     backoff_factor: f64,
 }
 
@@ -76,12 +102,34 @@ struct Config {
     dsrs: DsrsConfig,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct DsrsConfig {
     enable_context: bool,
     enable_system_prompt: bool,
     max_context_length: usize,
     retry_attempts: u32,
+}
+
+/// Configuration subset needed for input processing
+#[derive(Debug, Clone)]
+struct ProcessingConfig {
+    /// DSRs-specific settings
+    dsrs: DsrsConfig,
+    /// Model identifier for processing
+    model: String,
+    /// Maximum input size in bytes
+    max_input_size: usize,
+}
+
+impl Config {
+    /// Extract the processing-relevant configuration subset
+    fn to_processing_config(&self) -> ProcessingConfig {
+        ProcessingConfig {
+            dsrs: self.dsrs.clone(),
+            model: self.anthropic.model.clone(),
+            max_input_size: self.daemon.max_input_size,
+        }
+    }
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -128,13 +176,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn validate_config(config_file: &str) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Validating configuration: {}", config_file);
+    println!("Validating configuration: {config_file}");
     
     let config = load_config(config_file)?;
     
-    // Validate API key format
-    if !config.anthropic.api_key.starts_with("sk-") {
-        return Err("Invalid API key format".into());
+    // Validate API key format (sk- prefix + at least 20 alphanumeric chars)
+    let api_key = &config.anthropic.api_key;
+    if !api_key.starts_with("sk-") || api_key.len() < 23 {
+        return Err("[E003] Invalid API key format: must start with 'sk-' and be at least 23 characters".into());
+    }
+    // Validate API key contains only alphanumeric after prefix
+    if !api_key[3..].chars().all(|c| c.is_ascii_alphanumeric()) {
+        return Err("[E003] Invalid API key format: must contain only alphanumeric characters after 'sk-'".into());
     }
     
     // Validate URL
@@ -168,6 +221,14 @@ fn init_logging(logging: &LoggingConfig) {
         .init();
 }
 
+/// Helper function to write a JSON response to stdout
+fn write_json_response<T: serde::Serialize>(stdout: &mut impl std::io::Write, response: &T) -> Result<(), Box<dyn std::error::Error>> {
+    let json = serde_json::to_string(response)?;
+    writeln!(stdout, "{json}")?;
+    stdout.flush()?;
+    Ok(())
+}
+
 fn run_daemon(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
     println!("Starting Cognitord daemon in background mode...");
     
@@ -179,11 +240,9 @@ fn run_daemon(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
     for line in stdin_handle.lines() {
         let input = line?;
         
-        match process_input(&input, config) {
+        match process_input(&input, &config.to_processing_config()) {
             Ok(response) => {
-                let json = serde_json::to_string(&response)?;
-                writeln!(stdout, "{}", json)?;
-                stdout.flush()?;
+                write_json_response(&mut stdout, &response)?;
             }
             Err(e) => {
                 let error_response = ErrorResponse {
@@ -195,9 +254,7 @@ fn run_daemon(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
                     request_id: None,
                     timestamp: chrono::Utc::now().to_rfc3339(),
                 };
-                let json = serde_json::to_string(&error_response)?;
-                writeln!(stdout, "{}", json)?;
-                stdout.flush()?;
+                write_json_response(&mut stdout, &error_response)?;
             }
         }
     }
@@ -223,56 +280,75 @@ fn run_interactive(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
             continue;
         }
         
-        match process_input(&input.trim(), config) {
+        if input.trim() == "exit" || input.trim() == "quit" {
+            println!("Goodbye!");
+            break Ok(());
+        }
+        
+        match process_input(input.trim(), &config.to_processing_config()) {
             Ok(response) => {
                 let json = serde_json::to_string_pretty(&response)?;
-                println!("{}", json);
+                println!("{json}");
             }
             Err(e) => {
-                eprintln!("Error: {}", e);
+                eprintln!("Error: {e}");
             }
         }
     }
 }
 
-fn process_input(input: &str, config: &Config) -> Result<ProcessResponse, Box<dyn std::error::Error>> {
+fn process_input(input: &str, config: &ProcessingConfig) -> Result<ProcessResponse, Box<dyn std::error::Error>> {
     let request: ProcessRequest = serde_json::from_str(input)?;
     
     // Validate input
     if request.input.trim().is_empty() {
-        return Err("Input cannot be empty".into());
+        return Err("[E001] Input cannot be empty".into());
     }
     
+    // Validate input size
+    if request.input.len() > config.max_input_size {
+        return Err(format!("[E002] Input exceeds maximum size of {} bytes", config.max_input_size).into());
+    }
+    let request: ProcessRequest = serde_json::from_str(input)?;
+    
+    // Validate input
+    if request.input.trim().is_empty() {
+        return Err("[E001] Input cannot be empty".into());
+    }
+    
+    // Validate input size
+    if request.input.len() > config.max_input_size {
+        return Err(format!("[E002] Input exceeds maximum size of {} bytes", config.max_input_size).into());
+    }
     // Generate request ID if not provided
     let request_id = request.request_id.unwrap_or_else(|| Uuid::new_v4().to_string());
     
     // Start processing timer
     let start_time = std::time::Instant::now();
     
-    // Simple processing (placeholder for actual DSRs integration)
+    // Mock processing mode - returns formatted input for testing
+    // TODO: Implement actual DSRs LLM integration
     let mut output = format!("Processed: {}", request.input);
     
     // Add context if provided and enabled
     if config.dsrs.enable_context && request.context.is_some() {
         if let Some(context) = &request.context {
-            let truncated_context = if context.len() > config.dsrs.max_context_length {
-                &context[..config.dsrs.max_context_length]
-            } else {
-                context
-            };
-            output.push_str(&format!("\nContext: {}", truncated_context));
+            let truncated_context: String = context.chars()
+                .take(config.dsrs.max_context_length)
+                .collect();
+            output.push_str(&format!("\nContext: {truncated_context}"));
         }
     }
     
     // Add system prompt if provided and enabled
     if config.dsrs.enable_system_prompt && request.system_prompt.is_some() {
         if let Some(system_prompt) = &request.system_prompt {
-            output.push_str(&format!("\nSystem: {}", system_prompt));
+            output.push_str(&format!("\nSystem: {system_prompt}"));
         }
     }
     
     // Add model info
-    output.push_str(&format!("\nModel: {}", config.anthropic.model));
+    output.push_str(&format!("\nModel: {}", config.model));
     
     let duration_ms = start_time.elapsed().as_millis() as u64;
     
