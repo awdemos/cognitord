@@ -48,6 +48,40 @@ cognitord --config /etc/cognitord/config.json --interactive
 cognitord --validate-config /etc/cognitord/config.json
 ```
 
+### Example Sessions
+
+#### Interactive Mode
+```bash
+$ cognitord --config config.json --interactive
+> Hello, world!
+Request ID: uuid-here
+Timestamp: 2024-01-01T12:00:00Z
+Output: Processed: Hello, world!
+
+> What is 2+2?
+Request ID: uuid-here
+Timestamp: 2024-01-01T12:00:01Z
+Output: Processed: What is 2+2?
+
+> exit
+Goodbye!
+```
+
+#### Daemon Mode with JSON Protocol
+```bash
+# Start daemon
+$ cognitord --config config.json
+
+# In another terminal, send requests via stdin:
+$ echo '{"input": "Hello from stdin", "request_id": "test-123"}' | nc -U /run/cognitord/socket
+{"output":"Processed: Hello from stdin","usage":{"input_tokens":3,"output_tokens":5,"total_tokens":8},"request_id":"test-123","timestamp":"2024-01-01T12:00:00Z","duration_ms":1}
+```
+
+#### With Context and System Prompt
+```bash
+echo '{"input": "Summarize", "context": "Long article text here...", "system_prompt": "Be concise"}' | nc -U /run/cognitord/socket
+```
+
 ### Docker
 
 The Docker container runs Cognitord in stdin/stdout mode for socket communication:
